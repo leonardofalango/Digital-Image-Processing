@@ -178,9 +178,10 @@ Bitmap DrawHistogram()
 float[] convertFloat(Bitmap bmp)
 {
     float[] returnFloat = new float[bmp.Width * bmp.Height / 3];
+    int l = 0;
     for (int j = 0; j < bmp.Height; j++)
-        for (int i = 0, l = 0; i < bmp.Width; i += 3, l ++)
-            returnFloat[l] = bmp.GetPixel(i, j).R;
+        for (int i = 0; i < bmp.Width; i += 3, l++)
+            returnFloat[l] = bmp.GetPixel(i, j).R / 255f;
     return returnFloat;
 }
 // Running
