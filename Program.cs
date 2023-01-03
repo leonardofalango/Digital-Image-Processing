@@ -1,6 +1,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 using Timer = System.Windows.Forms.Timer;
+using System.Linq;
 
 ApplicationConfiguration.Initialize();
 
@@ -30,16 +31,27 @@ Graphics g = null;
 
 form.Load += delegate
 {
-    bmp = new Bitmap(form.Width, form.Height);
+    bmp = images[0];
     pb.Image = bmp;
-    g = Graphics.FromImage(bmp);
-
 };
 
 // Functions For Drawings
 int index = 0;
-Bitmap NextImage() { index++; return images[index]; }
-Bitmap PreviousImage() { index--; return images[index]; }
+Bitmap NextImage()
+{
+    index++;
+    if (index >= images.Count)
+        index = 0; 
+    return images[index];
+}
+Bitmap PreviousImage()
+{
+    index--;
+    if (index < 0)
+        index = images.Count - 1; 
+    return images[index];
+}
+
 // Getting keypresses
 form.KeyDown += (o, e) =>
 {
@@ -54,6 +66,10 @@ form.KeyDown += (o, e) =>
     
     if (e.KeyCode == Keys.Down)
         bmp = FastGrayScale();
+    
+    if (e.KeyCode == Keys.Up)
+        bmp = DrawHistogram();
+
     pb.Image = bmp;
     pb.Refresh();
 };
@@ -116,6 +132,56 @@ Bitmap FastGrayScale()
     return returnBmp;
 }
 
+int[] Histogram(float db = 0.05f)
+{
+    var grayBmp = FastGrayScale();
+    float[] gays = convertFloat(grayBmp);
+    int histogramLen = (int)(1 / db) + 1;
+    int[] histogram = new int[histogramLen];
 
+    for (int i = 0; i < gays.Length; i++)
+        histogram[(int)(gays[i] / db)]++;
+    
+    return histogram;
+}
+
+Bitmap DrawHistogram()
+{
+    int[] hist = Histogram();
+
+    Bitmap returnBmp = new Bitmap(pb.Width, pb.Height);
+    var g = Graphics.FromImage(returnBmp);
+    float margin = 16;
+
+    int max = hist.Max();
+    float barlen = (returnBmp.Width - 2 * margin) / hist.Length;
+    float r = (returnBmp.Height - 2 * margin) / max;
+
+    for (int i = 0; i < hist.Length; i++)
+    {
+        float bar = hist[i] * r;
+        g.FillRectangle(Brushes.Black, 
+            margin + i * barlen,
+            returnBmp.Height - margin - bar, 
+            barlen,
+            bar);
+        g.DrawRectangle(Pens.DarkBlue, 
+            margin + i * barlen,
+            returnBmp.Height - margin - bar, 
+            barlen,
+            bar);
+    }
+
+    return returnBmp; 
+}
+
+float[] convertFloat(Bitmap bmp)
+{
+    float[] returnFloat = new float[bmp.Width * bmp.Height / 3];
+    for (int j = 0; j < bmp.Height; j++)
+        for (int i = 0, l = 0; i < bmp.Width; i += 3, l ++)
+            returnFloat[l] = bmp.GetPixel(i, j).R;
+    return returnFloat;
+}
 // Running
 Application.Run(form);
