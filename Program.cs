@@ -53,7 +53,7 @@ form.KeyDown += (o, e) =>
         bmp = PreviousImage();
     
     if (e.KeyCode == Keys.Down)
-        bmp = GrayScale();
+        bmp = FastGrayScale();
     pb.Image = bmp;
     pb.Refresh();
 };
@@ -70,6 +70,49 @@ Bitmap GrayScale()
             Color newColor = Color.FromArgb(gray, gray, gray);
             returnBmp.SetPixel(i, j, newColor);
         }
+    return returnBmp;
+}
+
+Bitmap FastGrayScale()
+{
+    Bitmap returnBmp = new Bitmap(bmp.Width, bmp.Height);
+    
+    // Locking the original data
+    var originData = bmp.LockBits(
+        new Rectangle(0, 0, bmp.Width, bmp.Height),
+        System.Drawing.Imaging.ImageLockMode.ReadOnly,
+        System.Drawing.Imaging.PixelFormat.Format24bppRgb
+    );
+    // Locking the return data
+    var data = returnBmp.LockBits(
+        new Rectangle(0, 0, returnBmp.Width, returnBmp.Height),
+        System.Drawing.Imaging.ImageLockMode.ReadWrite,
+        System.Drawing.Imaging.PixelFormat.Format24bppRgb
+    );
+
+    unsafe
+    {
+        byte* originP = (byte*)originData.Scan0.ToPointer();
+        byte* p = (byte*)data.Scan0.ToPointer();
+
+        for (int j = 0; j < originData.Height; j++)
+        {
+            byte* originL = originP + j * originData.Stride;
+            byte* l = p + j * data.Stride;
+
+            for (int i = 0; i < originData.Width; i++, l+=3, originL += 3)
+            {
+                // originL[0] = original Blue pixel
+                // l[0] = returnBmp Blue pixel
+                byte gray = (byte)((30 * originL[2] + 59 * originL[1] + 11 * originL[0]) / 100);
+                l[0] = gray;
+                l[1] = gray;
+                l[2] = gray;
+            }
+        }
+    }
+    bmp.UnlockBits(originData);
+    returnBmp.UnlockBits(data);
     return returnBmp;
 }
 
