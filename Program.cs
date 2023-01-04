@@ -1,20 +1,12 @@
 using System.Drawing;
 using System.Windows.Forms;
-using Timer = System.Windows.Forms.Timer;
 using System.Linq;
+using System.Reflection;
 
 ApplicationConfiguration.Initialize();
 
 // Images in a vector
 List<Bitmap> images = new List<Bitmap>();
-
-// Processing images
-Bitmap? mrInc = Image.FromFile("Images/image.jpg") as Bitmap;
-images.Add(mrInc);
-
-Bitmap? image1 = Image.FromFile("Images/image1.jpg") as Bitmap;
-images.Add(image1);
-// End of Processing
 
 var form = new Form();
 form.WindowState = FormWindowState.Maximized; // Size
@@ -31,6 +23,16 @@ Graphics g = null;
 
 form.Load += delegate
 {
+    string[] files = Directory.GetFiles("Images");
+    foreach (var item in files)
+    {
+        var ext = string.Concat(item.Reverse().TakeWhile(c => c != '.').Reverse());
+        if (ext != "jpg" && ext != "png")
+            continue;
+        Bitmap image = (Bitmap)Image.FromFile(item);
+        images.Add(image);
+    }
+
     bmp = images[0];
     pb.Image = bmp;
 };
@@ -135,12 +137,12 @@ Bitmap FastGrayScale()
 int[] Histogram(float db = 0.05f)
 {
     var grayBmp = FastGrayScale();
-    float[] gays = convertFloat(grayBmp);
+    float[] grays = fastConvertFloat(grayBmp);
     int histogramLen = (int)(1 / db) + 1;
     int[] histogram = new int[histogramLen];
 
-    for (int i = 0; i < gays.Length; i++)
-        histogram[(int)(gays[i] / db)]++;
+    for (int i = 0; i < grays.Length; i++)
+        histogram[(int)(grays[i] / db)]++;
     
     return histogram;
 }
@@ -177,12 +179,41 @@ Bitmap DrawHistogram()
 
 float[] convertFloat(Bitmap bmp)
 {
-    float[] returnFloat = new float[bmp.Width * bmp.Height / 3];
+    float[] returnFloat = new float[bmp.Width * bmp.Height];
     int l = 0;
     for (int j = 0; j < bmp.Height; j++)
-        for (int i = 0; i < bmp.Width; i += 3, l++)
+        for (int i = 0; i < bmp.Width; i++, l++)
             returnFloat[l] = bmp.GetPixel(i, j).R / 255f;
     return returnFloat;
 }
+
+float[] fastConvertFloat(Bitmap bmp)
+{
+    float[] arr = new float[bmp.Width * bmp.Height];
+    int index = 0;
+    
+    var data = bmp.LockBits(
+        new Rectangle(0, 0, bmp.Width, bmp.Height),
+        System.Drawing.Imaging.ImageLockMode.ReadOnly,
+        System.Drawing.Imaging.PixelFormat.Format24bppRgb
+    );
+    unsafe
+    {
+        byte* p = (byte*)data.Scan0.ToPointer();
+        
+        // column loop
+        for (int j = 0; j < data.Height; j++)
+        {
+            byte* l = p + j * data.Stride;
+            // row loop
+            for (int i = 0; i < data.Width; i++, l+=3, index++)
+                arr[index] = l[0] / 255f;
+        }
+    }
+    bmp.UnlockBits(data);
+
+    return arr;
+}
+
 // Running
 Application.Run(form);
