@@ -83,6 +83,23 @@ form.KeyDown += (o, e) =>
             threshold = 10;
         MessageBox.Show(threshold.ToString());
     }
+    if (e.KeyCode == Keys.Subtract)
+    {
+        threshold -= 10;
+        if (threshold < 0)
+            threshold = 255;
+        MessageBox.Show(threshold.ToString());
+    }
+    if (e.KeyCode == Keys.Multiply)
+    {
+        threshold = Algs.Otsuki(bmp);
+        MessageBox.Show(threshold.ToString());
+    }
+
+    if (e.KeyCode == Keys.Enter)
+    {
+        bmp = ConvolutionFilter.FastSobel(bmp);
+    }
 
     pb.Image = bmp;
     pb.Refresh();

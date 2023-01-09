@@ -43,7 +43,7 @@ public static class HistogramFilter
         return returnBmp; 
     }
 
-    public static float[] convertFloat(Bitmap bmp)
+    private static float[] convertFloat(Bitmap bmp)
     {
         float[] returnFloat = new float[bmp.Width * bmp.Height];
         int l = 0;
