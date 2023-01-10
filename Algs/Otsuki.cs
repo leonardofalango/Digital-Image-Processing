@@ -22,8 +22,8 @@ public static class Algs
             float s = histogram[i] * value;
 
             if (N0 == 0 && histogram[i] == 0)
-            continue;
-            
+                continue;
+
             Ex0 = (Ex0 * N0 + s) / (N0 + histogram[i]);
             Ex1 = (Ex1 * N1 - s) / (N1 - histogram[i]);
 
@@ -34,19 +34,19 @@ public static class Algs
             Dx1 -= value * value * histogram[i];
 
             float stddev =
-            Dx0 - N0 * Ex0 * Ex0 + 
-            Dx1 - N1 * Ex1 * Ex1;
+                Dx0 - N0 * Ex0 * Ex0 + 
+                Dx1 - N1 * Ex1 * Ex1;
             
-            if (float.IsFinite(stddev) || float.IsNaN(stddev))
+            if (float.IsInfinity(stddev) ||
+                float.IsNaN(stddev))
                 continue;
-
+            
             if (stddev < minStddev)
             {
                 minStddev = stddev;
                 threshold = i;
             }
         }
-
         return threshold;
     }
 }

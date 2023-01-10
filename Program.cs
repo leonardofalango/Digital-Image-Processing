@@ -61,10 +61,10 @@ form.KeyDown += (o, e) =>
     if (e.KeyCode == Keys.Escape)
         Application.Exit();
     
-    if (e.KeyCode == Keys.Right)
+    if (e.KeyCode == Keys.A)
         bmp = NextImage();
     
-    if (e.KeyCode == Keys.Left)
+    if (e.KeyCode == Keys.D)
         bmp = PreviousImage();
     
     if (e.KeyCode == Keys.Up)
@@ -98,7 +98,12 @@ form.KeyDown += (o, e) =>
 
     if (e.KeyCode == Keys.Enter)
     {
-        bmp = ConvolutionFilter.FastSobel(bmp);
+        bmp = ConvolutionFilter.Convolution(bmp, new float[]{-1,-2,-1,0,0,0,1,2,1});
+    }
+
+    if (e.KeyCode == Keys.Right)
+    {
+        bmp = Rotate.Rotation(bmp, new float[]{0.6f, -0.8f, 0, 0.8f, 0.6f, 0});
     }
 
     pb.Image = bmp;
