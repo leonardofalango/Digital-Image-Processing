@@ -40,6 +40,7 @@ form.Load += delegate
 // Functions For Drawings
 int threshold = 0;
 int index = 0;
+int deg = 0;
 Bitmap NextImage()
 {
     index++;
@@ -103,7 +104,13 @@ form.KeyDown += (o, e) =>
 
     if (e.KeyCode == Keys.Right)
     {
-        bmp = Rotate.Rotation(bmp, new float[]{0.6f, -0.8f, 0, 0.8f, 0.6f, 0});
+        deg += 10;
+        bmp = Affine.Rotation(bmp, deg);
+    }
+    if (e.KeyCode == Keys.Left)
+    {
+        deg -= 10;
+        bmp = Affine.Rotation(bmp, deg);
     }
 
     pb.Image = bmp;

@@ -1,7 +1,17 @@
-public static class Rotate
+using System.Numerics;
+
+public static class Affine
 {
-    public static Bitmap Rotation(Bitmap bmp, float[] para)
+    public static Bitmap RotationWithoutRed(Bitmap bmp, Matrix4x4 mat)
     {
+
+        float[] para = new float[]
+        {
+            mat.M11, mat.M12, mat.M13,
+            mat.M21, mat.M22, mat.M23,
+            mat.M31, mat.M32, mat.M33,
+        };
+
         Bitmap returnBmp = new Bitmap(bmp.Width, bmp.Height);
         var grayBmp = GrayFilter.FastGrayScale(bmp);
         float[] img = HistogramFilter.fastConvertFloat(grayBmp);
@@ -57,5 +67,67 @@ public static class Rotate
         returnBmp.UnlockBits(data);
         return returnBmp;
 
+    }
+
+    public static Bitmap Rotation(Bitmap bmp, float deg)
+    {  
+        Matrix4x4 matrix = translateFromSize(.5f, .5f, bmp) *
+        rotation(deg) * 
+        translateFromSize(-.5f, -.5f, bmp);
+        return RotationWithoutRed(bmp, matrix);
+    }
+
+    private static Matrix4x4 mat(float[] arr)
+    {
+        return new Matrix4x4(
+        arr[0], arr[1], arr[2], 0,
+        arr[3], arr[4], arr[5], 0,
+        arr[6], arr[7], arr[8], 0,
+        0,      0,      0,      1
+    );
+    }
+
+    public static Matrix4x4 rotation(float degree)
+    {
+        float radian = degree / 180 * MathF.PI;
+        float cos = MathF.Cos(radian);
+        float sin = MathF.Sin(radian);
+        return mat(new float[]
+        {
+            cos, -sin, 0,
+            sin, cos, 0,
+            0,     0, 1
+        });
+    }
+
+    public static Matrix4x4 scale(float dx, float dy)
+    {
+        return mat(new float[]
+            {
+                dx, 0, 0,
+                0, dy, 0,
+                0, 0, 1
+            }
+        );
+    }
+
+    public static Matrix4x4 trasnslate(float dx, float dy)
+    {
+        return mat(new float[]
+        {
+        1, 0, dx,
+        0, 1, dy,
+        0, 0, 1
+        });
+    }
+
+    public static Matrix4x4 translateFromSize(float dx, float dy, Bitmap bmp)
+    {
+        return mat(new float[]
+        {
+            1, 0, dx * bmp.Width,
+            0, 1, dy * bmp.Height,
+            0, 0, 1
+        });
     }
 }

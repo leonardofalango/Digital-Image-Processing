@@ -56,4 +56,31 @@ public static class GrayFilter
         returnBmp.UnlockBits(data);
         return returnBmp;
     }
+
+    public static float[] ConvertImage(Bitmap bmp)
+    {
+        float[] img = new float[bmp.Width * bmp.Height];
+        
+        int index = 0;
+        var data = bmp.LockBits(
+            new Rectangle(0, 0, bmp.Width, bmp.Height),
+            System.Drawing.Imaging.ImageLockMode.ReadOnly,
+            System.Drawing.Imaging.PixelFormat.Format24bppRgb
+        );
+        unsafe
+        {
+            byte* p = (byte*)data.Scan0.ToPointer();
+
+            for (int j = 0; j < bmp.Height; j++)
+            {
+                byte* l = p + j * data.Stride;
+                for (int i = 0; i < bmp.Width; i++, l+=3, index++)
+                {
+                    img[index] = l[0] * 0.11f + l[1] * 0.59f + l[2] * 0.3f;
+                }
+            }
+        }
+        return img;
+    }
+
 }
