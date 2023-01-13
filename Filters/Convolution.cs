@@ -1,190 +1,154 @@
+using System.Numerics;
+
 public static class ConvolutionFilter
 {
-    public static Bitmap Sobel(Bitmap bmp)
+    public static byte[] Sobel((Bitmap bmp, byte[] img) t)
     {
-        Bitmap returnBmp = new Bitmap(bmp.Width, bmp.Height);
-        var grayBmp = GrayFilter.FastGrayScale(bmp);
-        float[] img = HistogramFilter.fastConvertFloat(grayBmp);
-
-        float[] result = new float[img.Length];
-        float[] realResult = new float[img.Length];
+        byte[] result = new byte[t.img.Length];
+        byte[] realResult = new byte[t.img.Length];
 
         float soma;
         float total;
 
-        for (int j = 1; j < bmp.Height - 1; j++)
+        for (int j = 1; j < t.bmp.Height - 1; j++)
         {
-            for (int i = 1; i < bmp.Width - 1; i++)
+            for (int i = 1; i < t.bmp.Width - 1; i++)
             {
-                soma = img[(i + (j * bmp.Width)) - 1] + img[(i + (j * bmp.Width))];
+                soma = t.img[(i + (j * t.bmp.Width)) - 1] + t.img[(i + (j * t.bmp.Width))];
                 total = soma;
-                soma = img[(i + (j * bmp.Width))] + img[(i + (j * bmp.Width)) + 1];
+                soma = t.img[(i + (j * t.bmp.Width))] + t.img[(i + (j * t.bmp.Width)) + 1];
                 total -= soma;
-                result[i + (j * bmp.Width)] = total;
+                result[i + (j * t.bmp.Width)] = (byte)total;
             }
         }
 
-        for (int i = 1; i < bmp.Width - 1; i++)
+        soma = t.img[0] + t.img[1] + t.img[2];
+        for (int i = 2; i < t.bmp.Width - 1; i++)
         {
-            for (int j = 1; j < bmp.Height - 1; j++)
+            for (int j = 1; j < t.bmp.Height - 1; j++)
             {
-                soma = result[(i + (j * bmp.Width)) - 1] + result[(i + (j * bmp.Width))] + result[(i + (j * bmp.Width))] + 1;
-                total = soma;
-                soma = result[(i + (j * bmp.Width))];
-                total -= soma;
-                realResult[i + (j * bmp.Width)] = total;
+                soma -= result[(i + (j * t.bmp.Width)) - 2];
+                soma += result[(i + (j * t.bmp.Width)) + 1];
+
+                realResult[i + (j * t.bmp.Width)] = (byte)soma;
             }
         }
-
-
-        int index = 0;
-        // Locking the return data
-        var data = returnBmp.LockBits(
-            new Rectangle(0, 0, returnBmp.Width, returnBmp.Height),
-            System.Drawing.Imaging.ImageLockMode.ReadWrite,
-            System.Drawing.Imaging.PixelFormat.Format24bppRgb
-        );
-
-        unsafe
-        {
-            byte* p = (byte*)data.Scan0.ToPointer();
-
-            for (int j = 0; j < data.Height; j++)
-            {
-                byte* originL = p + j * data.Stride;
-                byte* l = p + j * data.Stride;
-
-                for (int i = 0; i < data.Width; i++, l+=3, index++)
-                {
-                    int r = (int)(realResult[index] * 255);
-                    r = r > 255 ? 255 : r;
-                    r = r < 0 ? 0 : r;
-                    l[0] = (byte)r;
-                    l[1] = (byte)r;
-                    l[2] = (byte)r;
-                }
-            }
-        }
-        returnBmp.UnlockBits(data);
-        return returnBmp;
+        return realResult;
     }
 
-    public static Bitmap FastSobel(Bitmap bmp)
+    public static byte[] Convolution((Bitmap bmp, byte[] img) t, byte[] kernel)
     {
-        Bitmap returnBmp = new Bitmap(bmp.Width, bmp.Height);
-        var grayBmp = GrayFilter.FastGrayScale(bmp);
-        float[] img = HistogramFilter.fastConvertFloat(grayBmp);
-
-        float[] result = new float[img.Length];
-        float[] realResult = new float[img.Length];
-
-        float soma;
-        float total;
-
-        for (int j = 1; j < bmp.Height - 1; j++)
-        {
-            for (int i = 1; i < bmp.Width - 1; i++)
-            {
-                soma = img[(i + (j * bmp.Width)) - 1] + img[(i + (j * bmp.Width))];
-                total = soma;
-                soma = img[(i + (j * bmp.Width))] + img[(i + (j * bmp.Width)) + 1];
-                total -= soma;
-                result[i + (j * bmp.Width)] = total;
-            }
-        }
-
-        soma = img[0] + img[1] + img[2];
-        for (int i = 2; i < bmp.Width - 1; i++)
-        {
-            for (int j = 1; j < bmp.Height - 1; j++)
-            {
-                soma -= result[(i + (j * bmp.Width)) - 2];
-                soma += result[(i + (j * bmp.Width)) + 1];
-
-                realResult[i + (j * bmp.Width)] = soma;
-            }
-        }
-
-
-        int index = 0;
-        // Locking the return data
-        var data = returnBmp.LockBits(
-            new Rectangle(0, 0, returnBmp.Width, returnBmp.Height),
-            System.Drawing.Imaging.ImageLockMode.ReadWrite,
-            System.Drawing.Imaging.PixelFormat.Format24bppRgb
-        );
-
-        unsafe
-        {
-            byte* p = (byte*)data.Scan0.ToPointer();
-
-            for (int j = 0; j < data.Height; j++)
-            {
-                byte* originL = p + j * data.Stride;
-                byte* l = p + j * data.Stride;
-
-                for (int i = 0; i < data.Width; i++, l+=3, index++)
-                {
-                    int r = (int)(result[index] * 255);
-                    r = r > 255 ? 255 : r;
-                    r = r < 0 ? 0 : r;
-                    l[0] = (byte)r;
-                    l[1] = (byte)r;
-                    l[2] = (byte)r;
-                }
-            }
-        }
-        returnBmp.UnlockBits(data);
-        return returnBmp;
-    }
-
-    public static Bitmap Convolution(Bitmap bmp, float[] kernel)
-    {
-        Bitmap returnBmp = new Bitmap(bmp.Width, bmp.Height);
         int baseKernel = (int)Math.Sqrt(kernel.Length);
-        var grayBmp = GrayFilter.FastGrayScale(bmp);
-        float[] img = HistogramFilter.fastConvertFloat(grayBmp);
-        float[] result = new float[img.Length];
+        byte[] result = new byte[t.img.Length];
 
 
-        for (int j = 1; j < bmp.Height - 1; j++)
-            for (int i = 1; i < bmp.Width - 1; i++)
+        for (int j = 1; j < t.bmp.Height - 1; j++)
+            for (int i = 1; i < t.bmp.Width - 1; i++)
                 for (int m = 0; m < baseKernel; m++)
                     for (int n = 0; n < baseKernel; n++)
-                        result[i + j * bmp.Width] = 
-                            img[(i + n - baseKernel / 2) 
-                            + (j + m - baseKernel / 2) * bmp.Width] 
-                            * kernel[m + n * baseKernel];
+                        result[i + j * t.bmp.Width] = (byte)
+                            (t.img[(i + n - baseKernel / 2) 
+                            + (j + m - baseKernel / 2) * t.bmp.Width] 
+                            * kernel[m + n * baseKernel]);
 
-       int index = 0;
-        // Locking the return data
-        var data = returnBmp.LockBits(
-            new Rectangle(0, 0, returnBmp.Width, returnBmp.Height),
-            System.Drawing.Imaging.ImageLockMode.ReadWrite,
-            System.Drawing.Imaging.PixelFormat.Format24bppRgb
-        );
+      return result;
+    }
 
-        unsafe
+    public static byte[] RotationWithoutRed((Bitmap bmp, byte[] img) t, Matrix4x4 mat)
+    {
+
+        float[] para = new float[]
         {
-            byte* p = (byte*)data.Scan0.ToPointer();
+            mat.M11, mat.M12, mat.M13,
+            mat.M21, mat.M22, mat.M23,
+            mat.M31, mat.M32, mat.M33,
+        };
 
-            for (int j = 0; j < data.Height; j++)
+        byte[] returnImg = new byte[t.img.Length];
+
+        int index;
+        int newIndex;
+
+        for (int j = 0; j < t.bmp.Height; j++)
+        {
+            for (int i = 0; i < t.bmp.Width; i++)
             {
-                byte* originL = p + j * data.Stride;
-                byte* l = p + j * data.Stride;
+                index = i + j * t.bmp.Width;
 
-                for (int i = 0; i < data.Width; i++, l+=3, index++)
-                {
-                    int r = (int)(result[index] * 255);
-                    r = r > 255 ? 255 : r;
-                    r = r < 0 ? 0 : r;
-                    l[0] = (byte)r;
-                    l[1] = (byte)r;
-                    l[2] = (byte)r;
-                }
+                int X1 = (int)(para[0] * i + para[1] * j + para[2]);  
+                int Y1 = (int)(para[3] * i + para[4] * j + para[5]);
+                
+                if (X1 >= t.bmp.Width || X1 < 0 || Y1 >= t.bmp.Height || Y1 < 0)
+                    continue;
+
+                newIndex = X1 + Y1 * t.bmp.Width;
+                returnImg[newIndex] = t.img[index];
             }
         }
-        returnBmp.UnlockBits(data);
-        return returnBmp;
+
+        return returnImg;
     }
+
+    public static byte[] Rotation((Bitmap bmp, byte[] img) t, float deg)
+    {  
+        Matrix4x4 matrix = translateFromSize(.5f, .5f, t.bmp) *
+        rotation(deg) * 
+        translateFromSize(-.5f, -.5f, t.bmp);
+        return RotationWithoutRed(t, matrix);
+    }
+
+    private static Matrix4x4 mat(float[] arr)
+    {
+        return new Matrix4x4(
+        arr[0], arr[1], arr[2], 0,
+        arr[3], arr[4], arr[5], 0,
+        arr[6], arr[7], arr[8], 0,
+        0,      0,      0,      1
+    );
+    }
+
+    private static Matrix4x4 rotation(float degree)
+    {
+        float radian = degree / 180 * MathF.PI;
+        float cos = MathF.Cos(radian);
+        float sin = MathF.Sin(radian);
+        return mat(new float[]
+        {
+            cos, -sin, 0,
+            sin, cos, 0,
+            0,     0, 1
+        });
+    }
+
+    private static Matrix4x4 scale(float dx, float dy)
+    {
+        return mat(new float[]
+            {
+                dx, 0, 0,
+                0, dy, 0,
+                0, 0, 1
+            }
+        );
+    }
+
+    private static Matrix4x4 trasnslate(float dx, float dy)
+    {
+        return mat(new float[]
+        {
+        1, 0, dx,
+        0, 1, dy,
+        0, 0, 1
+        });
+    }
+
+    private static Matrix4x4 translateFromSize(float dx, float dy, Bitmap bmp)
+    {
+        return mat(new float[]
+        {
+            1, 0, dx * bmp.Width,
+            0, 1, dy * bmp.Height,
+            0, 0, 1
+        });
+    }
+
 }

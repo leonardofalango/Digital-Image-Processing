@@ -1,13 +1,11 @@
 public static class Interpolation
 {
-    public static float[] Bilinear(Bitmap bmp)
+    public static byte[] Bilinear((Bitmap bmp, byte[] img) t)
     {
-        bmp = GrayFilter.FastGrayScale(bmp);
-        float[] img = HistogramFilter.fastConvertFloat(bmp);
-        float[] aux = img;
-        float[] final = new float[img.Length];
-        int width =  bmp.Width;
-        int height = bmp.Height; 
+        byte[] aux = t.img;
+        byte[] final = new byte[t.img.Length];
+        int width =  t.bmp.Width;
+        int height = t.bmp.Height; 
 
         for (int j = 0; j < height; j++)
         {
@@ -31,7 +29,7 @@ public static class Interpolation
                 var bottomRigth = (i + 1) + (j + 1) * width;
                 float bottomMean = (bottomLeft + bottomRigth) / 2;
 
-                final[index] = (topMean + bottomMean) / 2;
+                final[index] = (byte)((topMean + bottomMean) / 2);
             }
         }
 

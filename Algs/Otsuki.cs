@@ -1,18 +1,19 @@
+using System.Linq;
+
 public static class Algs
 {
-    public static int Otsuki(Bitmap bmp, float db=0.5f)
+    public static int Otsuki((Bitmap bmp, byte[] img) t, float db=0.5f)
     {
-        var img = HistogramFilter.fastConvertFloat(bmp);
-        var histogram = HistogramFilter.Histogram(bmp);
-        int N = bmp.Width * bmp.Height;
+        var histogram = HistogramFilter.Histogram(t);
+        int N = t.bmp.Width * t.bmp.Height;
         int threshold = 0;
 
         float Ex0 = 0;
-        float Ex1 = img.Average();
+        float Ex1 = (float)(t.img.Average(e => e));
         float Dx0 = 0;
-        float Dx1 = img.Sum(x => x*x);
+        float Dx1 = t.img.Sum(x => x*x);
         int N0 = 0;
-        int N1 = img.Length;
+        int N1 = t.img.Length;
 
         float minStddev = float.PositiveInfinity;
 

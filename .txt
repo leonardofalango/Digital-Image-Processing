@@ -1,3 +1,25 @@
+/*
+Blur, Grayscale, Rotation, Convolucão, Binarização, Sobel, Otsuki, Histograma, Interpolação
+
+
+GrayScale -> G
+Rotation -> LEFT/RIGHTARROW
+Sobel/Convoluções -> Enter
+Threshold -> + -
+Binarização -> numpad1
+Histograma -> UPARROW
+Blur -> B - cinza, N - colorido
+
+*/
+
+
+
+
+
+
+
+
+
 using System;
 using System.Linq;
 using System.Drawing;
